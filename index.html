@@ -2,44 +2,45 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>d-crew 안드로이드 앱 테스트용 타이머</title>
+  <title>D-crew 안드로이드 앱 테스트용 타이머 (2× 확대)</title>
   <style>
     body{
       height:100vh;display:flex;justify-content:center;align-items:center;
       background:#f5f7fa;flex-direction:column;gap:20px;
       font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
     }
-    /* 타이머·궤적을 감싸는 컨테이너 ― 원을 넉넉히 키움 */
+    /* 2× 확대된 타이머 래퍼 */
     .timer-wrapper{
       position:relative;
-      width:260px;height:260px;           /* ⬅️ 원 크기 ↑ */
+      width:520px;height:520px;          /* 260 → 520 */
       display:flex;align-items:center;justify-content:center;
     }
-    /* 궤적 : 실선 원 */
+    /* 궤적 : 실선 원 (2×) */
     .trajectory{
       position:absolute;
-      width:240px;height:240px;           /* 2 × (궤적 반지름 120px) */
-      border:2px solid #3498db;           /* ⬅️ 실선 */
+      width:480px;height:480px;          /* 240 → 480 */
+      border:2px solid #3498db;
       border-radius:50%;
       left:50%;top:50%;transform:translate(-50%,-50%);
       pointer-events:none;
     }
-    /* 도는 작은 점 */
+    /* 도는 점 (2×) */
     .dot{
       position:absolute;
-      width:24px;height:24px;
+      width:48px;height:48px;            /* 24 → 48 */
       background:#3498db;border-radius:50%;
       box-shadow:0 0 8px #3498db88;
       left:50%;top:50%;transform:translate(-50%,-50%);
       pointer-events:none;
     }
-    /* 타이머 숫자 */
+    /* 타이머 숫자 (2× 폰트) */
     #timer{
-      font-size:2.5em;color:#333;min-width:130px; /* 폭 여유 */
+      font-size:5em;                     /* 2.5em → 5em */
+      color:#333;min-width:260px;        /* 130 → 260 */
       text-align:center;user-select:none;z-index:1;
       padding:0.1em 0.5em;
     }
-    /* 버튼 */
+    /* 버튼 (그대로) */
     .buttons{display:flex;gap:10px}
     button{
       padding:0.5em 1.2em;font-size:1em;border:none;border-radius:5px;
@@ -81,11 +82,11 @@
     /* 상태 변수 */
     let startTime=0,elapsedBeforePause=0,animationFrameId=null,running=false;
 
-    /* 회전 관련 상수 (궤적 반지름 120px) */
+    /* 회전 관련 상수 (반지름 240px, 중심 260,260) */
     let lastRotate=0,angle=0;
-    const speed=180;                   // 180°/s (2 초에 한 바퀴)
-    const centerX=130,centerY=130;     // 컨테이너 260px → 중앙 130
-    const radius=120;                  // 궤적 반지름
+    const speed=180;                      // 180°/s
+    const centerX=260,centerY=260;        // 130 → 260
+    const radius=240;                     // 120 → 240
 
     function update(){
       const now=performance.now();
