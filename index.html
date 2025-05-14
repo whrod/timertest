@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>ms 타이머 with 원 위를 도는 작은 원 (스페이스바 지원)</title>
+  <style>
+    body{
+      height:100vh;display:flex;justify-content:center;align-items:center;
+      background:#f5f7fa;flex-direction:column;gap:20px;
+      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    }
+    /* 타이머·궤적을 감싸는 컨테이너 ― 원을 넉넉히 키움 */
+    .timer-wrapper{
+      position:relative;
+      width:260px;height:260px;           /* ⬅️ 원 크기 ↑ */
+      display:flex;align-items:center;justify-content:center;
+    }
+    /* 궤적 : 실선 원 */
+    .trajectory{
+      position:absolute;
+      width:240px;height:240px;           /* 2 × (궤적 반지름 120px) */
+      border:2px solid #3498db;           /* ⬅️ 실선 */
+      border-radius:50%;
+      left:50%;top:50%;transform:translate(-50%,-50%);
+      pointer-events:none;
+    }
+    /* 도는 작은 점 */
+    .dot{
+      position:absolute;
+      width:24px;height:24px;
+      background:#3498db;border-radius:50%;
+      box-shadow:0 0 8px #3498db88;
+      left:50%;top:50%;transform:translate(-50%,-50%);
+      pointer-events:none;
+    }
+    /* 타이머 숫자 */
+    #timer{
+      font-size:2.5em;color:#333;min-width:130px; /* 폭 여유 */
+      text-align:center;user-select:none;z-index:1;
+      padding:0.1em 0.5em;
+    }
+    /* 버튼 */
+    .buttons{display:flex;gap:10px}
+    button{
+      padding:0.5em 1.2em;font-size:1em;border:none;border-radius:5px;
+      background:#3498db;color:#fff;cursor:pointer;
+      transition:background-color .3s;
+    }
+    button:disabled{background:#a0c4e8;cursor:not-allowed}
+    button:hover:not(:disabled){background:#217dbb}
+  </style>
+</head>
+<body>
+  <div class="timer-wrapper">
+    <div class="trajectory"></div>
+    <div class="dot" id="dot"></div>
+    <span id="timer">00:00:000</span>
+  </div>
+  <div class="buttons">
+    <button id="startBtn">시작</button>
+    <button id="stopBtn" disabled>중지</button>
+    <button id="resetBtn">초기화</button>
+  </div>
+
+  <script>
+    const timerEl  = document.getElementById('timer');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn  = document.getElementById('stopBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const dot      = document.getElementById('dot');
+
+    /* 시간 포맷터 ── MM:SS:mmm */
+    const pad = (v,len)=>v.toString().padStart(len,'0');
+    const formatTime = ms=>{
+      const m = Math.floor(ms/60000);
+      const s = Math.floor(ms/1000)%60;
+      const t = Math.floor(ms%1000);
+      return `${pad(m,2)}:${pad(s,2)}:${pad(t,3)}`;
+    };
+
+    /* 상태 변수 */
+    let startTime=0,elapsedBeforePause=0,animationFrameId=null,running=false;
+
+    /* 회전 관련 상수 (궤적 반지름 120px) */
+    let lastRotate=0,angle=0;
+    const speed=180;                   // 180°/s (2 초에 한 바퀴)
+    const centerX=130,centerY=130;     // 컨테이너 260px → 중앙 130
+    const radius=120;                  // 궤적 반지름
+
+    function update(){
+      const now=performance.now();
+      const elapsed=now-startTime+elapsedBeforePause;
+      timerEl.textContent=formatTime(elapsed);
+
+      const delta=now-lastRotate;
+      angle=(angle+speed*(delta/1000))%360;
+      lastRotate=now;
+
+      const rad=angle*Math.PI/180;
+      const x=centerX+radius*Math.cos(rad-Math.PI/2);
+      const y=centerY+radius*Math.sin(rad-Math.PI/2);
+      dot.style.left=`${x}px`;dot.style.top=`${y}px`;
+
+      animationFrameId=requestAnimationFrame(update);
+    }
+
+    function resetTimer(){
+      running=false;
+      cancelAnimationFrame(animationFrameId);
+      elapsedBeforePause=0;
+      timerEl.textContent='00:00:000';
+      startBtn.disabled=false;stopBtn.disabled=true;
+      angle=0;
+      const rad=angle*Math.PI/180;
+      dot.style.left=`${centerX+radius*Math.cos(rad-Math.PI/2)}px`;
+      dot.style.top =`${centerY+radius*Math.sin(rad-Math.PI/2)}px`;
+    }
+
+    function startTimer(){
+      if(running)return;
+      running=true;startTime=performance.now();lastRotate=startTime;
+      animationFrameId=requestAnimationFrame(update);
+      startBtn.disabled=true;stopBtn.disabled=false;
+    }
+    function stopTimer(){
+      if(!running)return;
+      running=false;cancelAnimationFrame(animationFrameId);
+      elapsedBeforePause+=performance.now()-startTime;
+      startBtn.disabled=false;stopBtn.disabled=true;
+    }
+
+    /* 이벤트 바인딩 */
+    startBtn.addEventListener('click',startTimer);
+    stopBtn .addEventListener('click',stopTimer);
+    resetBtn.addEventListener('click',resetTimer);
+    window.addEventListener('keydown',e=>{
+      if(['INPUT','TEXTAREA'].includes(e.target.tagName)||e.target.isContentEditable)return;
+      if(e.code==='Space'){e.preventDefault();running?stopTimer():startTimer();}
+    });
+
+    /* 초기화 */
+    resetTimer();
+  </script>
+</body>
+</html>
